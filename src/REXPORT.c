@@ -3,6 +3,14 @@
 #include <Rinternals.h>
 #include <R.h>
 
+extern SEXP rustr_to_tson(SEXP object);
+SEXP teRcenHttp_to_tson(SEXP object){ return(rustr_to_tson(object));}
+extern SEXP rustr_from_tson(SEXP rbytes);
+SEXP teRcenHttp_from_tson(SEXP rbytes){ return(rustr_from_tson(rbytes));}
+extern SEXP rustr_to_json(SEXP object);
+SEXP teRcenHttp_to_json(SEXP object){ return(rustr_to_json(object));}
+extern SEXP rustr_from_json(SEXP data);
+SEXP teRcenHttp_from_json(SEXP data){ return(rustr_from_json(data));}
 extern SEXP rustr_do_verb_multi_part_r(SEXP verb, SEXP headers, SEXP url, SEXP query, SEXP body, SEXP response_type);
 SEXP teRcenHttp_do_verb_multi_part_r(SEXP verb, SEXP headers, SEXP url, SEXP query, SEXP body, SEXP response_type){ return(rustr_do_verb_multi_part_r(verb,headers,url,query,body,response_type));}
 extern SEXP rustr_do_verb_r(SEXP verb, SEXP headers, SEXP url, SEXP query, SEXP body, SEXP content_type, SEXP response_type);

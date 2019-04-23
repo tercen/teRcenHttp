@@ -22,6 +22,26 @@ pub use rustson::*;
 use std::collections::HashMap;
 use rtsonlib::Value::*;
 
+// #[rustr_export]
+pub fn to_tson(object: SEXP) -> RResult<RawVec> {
+    rtsonlib::to_tson(object)
+}
+
+// #[rustr_export]
+pub fn from_tson(rbytes: RawVec) -> RResult<SEXP> {
+    rtsonlib::from_tson(rbytes)
+}
+
+// #[rustr_export]
+pub fn to_json(object: SEXP) -> RResult<String> {
+    rtsonlib::to_json(object)
+}
+
+// #[rustr_export]
+pub fn from_json(data: String) -> RResult<SEXP> {
+    rtsonlib::from_json(&data)
+}
+
 struct Part {
     headers: HashMap<String, String>,
     content: Vec<u8>,

@@ -43,3 +43,19 @@ DELETE = function(url,
                   response_type="default") {
   do_verb_r("DELETE",headers,url,query,body,content_type,response_type)
 }
+
+fromJSON <- function(object){
+    return(from_json(object))
+}
+
+toJSON <- function(object) {
+    return(to_json(object))
+}
+
+fromTSON <- function(bytes){
+    return(from_tson(bytes))
+}
+
+toTSON <- function(object) {
+    return(to_tson(object))
+}
