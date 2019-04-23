@@ -1,0 +1,15 @@
+[package]
+name = "rustlib"
+version = "0.1.0"
+
+[dependencies]
+bytes = "*"
+url="*"
+rustr = "*"
+reqwest = "*"
+rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.1" }
+rtsonlib = { git = "https://github.com/tercen/rtsonlib", tag = "0.2.5" }
+
+[lib]
+name = "rustlib"
+crate-type = ["staticlib","rlib"]
