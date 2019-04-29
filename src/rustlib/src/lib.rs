@@ -8,7 +8,7 @@ extern crate bytes;
 
 pub mod export;
 
-use bytes::{BufMut};
+use bytes::BufMut;
 use std::str::FromStr;
 use std::io::Cursor;
 use std::time::Duration;
@@ -74,7 +74,7 @@ impl Part {
                         match content_type.as_ref() {
                             "application/octet-stream" => {
                                 match content_value {
-                                    LSTU8(content) => Ok(Part{ headers: headers.clone(), content: content }),
+                                    LSTU8(content) => Ok(Part { headers: headers.clone(), content: content }),
                                     _ => Err(reqwestr_error("for content type application/octet-stream content must be a raw vector")),
                                 }
                             }
@@ -107,7 +107,7 @@ fn reqwestr_error(msg: &str) -> RError {
 
 struct MultiPart {
     frontier: String,
-    parts: Vec<Part>
+    parts: Vec<Part>,
 }
 
 impl MultiPart {
@@ -128,14 +128,13 @@ impl MultiPart {
     }
 
     fn as_bytes(&self) -> Vec<u8> {
-
-        let mut len : usize = 0;
+        let mut len: usize = 0;
         for part in &self.parts {
             len += 2;
             len += &self.frontier.len();
             len += 2;
 
-            for (k,v) in &part.headers {
+            for (k, v) in &part.headers {
                 len += k.len();
                 len += v.len();
                 len += 4;
@@ -159,7 +158,7 @@ impl MultiPart {
             bytes.put_u8(13);
             bytes.put_u8(10);
 
-            for (k,v) in &part.headers {
+            for (k, v) in &part.headers {
                 bytes.put(k);
                 bytes.put(": ");
                 bytes.put(v);
@@ -311,22 +310,26 @@ pub fn do_verb_url(verb: String,
                     values.set(1, h.intor()?)?;
                     names.set(2, "content")?;
 
-                    if buf.is_empty() {
-                        values.set(2, ().intor()?)?;
-                    } else {
-                        let mut resp_type: &str = &response_type;
+                    //values.set(2, ().intor()?)?;
 
-                        match response_type.as_ref() {
-                            "default" => {
-                                if let Some(content_type) = response.headers().get("content-type") {
-                                    resp_type = content_type.to_str().unwrap();
-                                }
+                    //if buf.is_empty() {
+
+                    let mut resp_type: &str = &response_type;
+
+                    match response_type.as_ref() {
+                        "default" => {
+                            if let Some(content_type) = response.headers().get("content-type") {
+                                resp_type = content_type.to_str().unwrap();
                             }
-                            _ => {}
                         }
+                        _ => {}
+                    }
 
-                        match resp_type {
-                            "application/tson" => {
+                    match resp_type {
+                        "application/tson" => {
+                            if buf.is_empty() {
+                                values.set(2, ().intor()?)?;
+                            } else {
                                 match decode(Cursor::new(&buf)) {
                                     Ok(object) => {
                                         values.set(2, (value_to_r(&object)?).intor()?)?;
@@ -336,7 +339,12 @@ pub fn do_verb_url(verb: String,
                                     }
                                 }
                             }
-                            "application/json" => {
+
+                        }
+                        "application/json" => {
+                            if buf.is_empty() {
+                                values.set(2, ().intor()?)?;
+                            } else {
                                 match decode_json(&buf) {
                                     Ok(object) => {
                                         values.set(2, (value_to_r(&object)?).intor()?)?;
@@ -346,37 +354,37 @@ pub fn do_verb_url(verb: String,
                                     }
                                 }
                             }
-                            "application/octet-stream" => {
-                                let mut raw_vec = RawVec::alloc(buf.len());
 
-                                unsafe {
-                                    for i in 0..buf.len() {
-                                        raw_vec.uset(i, buf[i]);
-                                    }
-                                }
+                        }
+                        "application/octet-stream" => {
+                            let mut raw_vec = RawVec::alloc(buf.len());
 
-                                values.set(2, raw_vec.intor()?)?;
-                            }
-                            "text/html" => {
-                                unsafe {
-                                    let utf8str = String::from_utf8_unchecked(buf);
-                                    values.set(2, utf8str.intor()?)?;
+                            unsafe {
+                                for i in 0..buf.len() {
+                                    raw_vec.uset(i, buf[i]);
                                 }
                             }
-                            _ => {
-                                let mut raw_vec = RawVec::alloc(buf.len());
 
-                                unsafe {
-                                    for i in 0..buf.len() {
-                                        raw_vec.uset(i, buf[i]);
-                                    }
-                                }
-
-                                values.set(2, raw_vec.intor()?)?;
+                            values.set(2, raw_vec.intor()?)?;
+                        }
+                        "text/html" => {
+                            unsafe {
+                                let utf8str = String::from_utf8_unchecked(buf);
+                                values.set(2, utf8str.intor()?)?;
                             }
                         }
-                    }
+                        _ => {
+                            let mut raw_vec = RawVec::alloc(buf.len());
 
+                            unsafe {
+                                for i in 0..buf.len() {
+                                    raw_vec.uset(i, buf[i]);
+                                }
+                            }
+
+                            values.set(2, raw_vec.intor()?)?;
+                        }
+                    }
 
 
                     unsafe {

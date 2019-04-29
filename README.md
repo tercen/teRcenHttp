@@ -4,6 +4,7 @@ R http client package
 
 ```R
 devtools::install_github("tercen/teRcenHttp", ref = "1.0.5", args="--no-multiarch")
+devtools::install_github("tercen/teRcenHttp", args="--no-multiarch")
 ```
 
 # Build rust
