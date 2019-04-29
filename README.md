@@ -3,7 +3,7 @@ R http client package
 # Install 
 
 ```R
-devtools::install_github("tercen/teRcenHttp", ref = "1.0.3", upgrade_dependencies = FALSE, args="--no-multiarch")
+devtools::install_github("tercen/teRcenHttp", ref = "1.0.4", upgrade_dependencies = FALSE, args="--no-multiarch")
 ```
 
 # Build rust
@@ -30,10 +30,16 @@ GET("https://dev.tercen.com")
 GET("https://dev.tercen.com", response_type="application/octet-stream")
 
 toJSON(list(hey="42", you=tson.scalar(42.0)))
+toJSON(list(hey="42", you=42.0))
+
 toTSON(list(hey="42", you=tson.scalar(42.0)))
 
 fromJSON(toJSON(list(hey="42", you=tson.scalar(42.0))))
+fromJSON(toJSON(list(hey=tson.scalar(42), you=tson.scalar(42.0))))
+
 fromTSON(toTSON(list(hey="42", you=tson.scalar(42.0))))
+fromTSON(toTSON(list(hey="42", you=42.0)))
 
 fromJSON('{"hey":"42", "you":42.0}')
+fromJSON('{"hey":"42", "you":[42.0]}')
 ```
