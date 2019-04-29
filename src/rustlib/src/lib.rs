@@ -311,67 +311,73 @@ pub fn do_verb_url(verb: String,
                     values.set(1, h.intor()?)?;
                     names.set(2, "content")?;
 
-                    let mut resp_type: &str = &response_type;
+                    if buf.is_empty() {
+                        values.set(2, ().intor()?)?;
+                    } else {
+                        let mut resp_type: &str = &response_type;
 
-                    match response_type.as_ref() {
-                        "default" => {
-                            if let Some(content_type) = response.headers().get("content-type") {
-                                resp_type = content_type.to_str().unwrap();
+                        match response_type.as_ref() {
+                            "default" => {
+                                if let Some(content_type) = response.headers().get("content-type") {
+                                    resp_type = content_type.to_str().unwrap();
+                                }
+                            }
+                            _ => {}
+                        }
+
+                        match resp_type {
+                            "application/tson" => {
+                                match decode(Cursor::new(&buf)) {
+                                    Ok(object) => {
+                                        values.set(2, (value_to_r(&object)?).intor()?)?;
+                                    }
+                                    Err(ref e) => {
+                                        return Err(reqwestr_error(e));
+                                    }
+                                }
+                            }
+                            "application/json" => {
+                                match decode_json(&buf) {
+                                    Ok(object) => {
+                                        values.set(2, (value_to_r(&object)?).intor()?)?;
+                                    }
+                                    Err(ref e) => {
+                                        return Err(reqwestr_error(e));
+                                    }
+                                }
+                            }
+                            "application/octet-stream" => {
+                                let mut raw_vec = RawVec::alloc(buf.len());
+
+                                unsafe {
+                                    for i in 0..buf.len() {
+                                        raw_vec.uset(i, buf[i]);
+                                    }
+                                }
+
+                                values.set(2, raw_vec.intor()?)?;
+                            }
+                            "text/html" => {
+                                unsafe {
+                                    let utf8str = String::from_utf8_unchecked(buf);
+                                    values.set(2, utf8str.intor()?)?;
+                                }
+                            }
+                            _ => {
+                                let mut raw_vec = RawVec::alloc(buf.len());
+
+                                unsafe {
+                                    for i in 0..buf.len() {
+                                        raw_vec.uset(i, buf[i]);
+                                    }
+                                }
+
+                                values.set(2, raw_vec.intor()?)?;
                             }
                         }
-                        _ => {}
                     }
 
-                    match resp_type {
-                        "application/tson" => {
-                            match decode(Cursor::new(&buf)) {
-                                Ok(object) => {
-                                    values.set(2, (value_to_r(&object)?).intor()?)?;
-                                }
-                                Err(ref e) => {
-                                    return Err(reqwestr_error(e));
-                                }
-                            }
-                        }
-                        "application/json" => {
-                            match decode_json(&buf) {
-                                Ok(object) => {
-                                    values.set(2, (value_to_r(&object)?).intor()?)?;
-                                }
-                                Err(ref e) => {
-                                    return Err(reqwestr_error(e));
-                                }
-                            }
-                        }
-                        "application/octet-stream" => {
-                            let mut raw_vec = RawVec::alloc(buf.len());
 
-                            unsafe {
-                                for i in 0..buf.len() {
-                                    raw_vec.uset(i, buf[i]);
-                                }
-                            }
-
-                            values.set(2, raw_vec.intor()?)?;
-                        }
-                        "text/html" => {
-                            unsafe {
-                                let utf8str = String::from_utf8_unchecked(buf);
-                                values.set(2, utf8str.intor()?)?;
-                            }
-                        }
-                        _ => {
-                            let mut raw_vec = RawVec::alloc(buf.len());
-
-                            unsafe {
-                                for i in 0..buf.len() {
-                                    raw_vec.uset(i, buf[i]);
-                                }
-                            }
-
-                            values.set(2, raw_vec.intor()?)?;
-                        }
-                    }
 
                     unsafe {
                         Rf_setAttrib(values.s(), R_NamesSymbol, names.s());
