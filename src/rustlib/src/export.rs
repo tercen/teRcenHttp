@@ -101,7 +101,7 @@ let url_ : String = unwrapr!( String::rnew(url) );
 
 let query_ : HashMap<String, String> = unwrapr!( HashMap::rnew(query) );
 
-let body_ : Vec<u8> = unwrapr!( Vec::rnew(body) );
+let body_ : RawVec = unwrapr!( RawVec::rnew(body) );
 
 let response_type_ : String = unwrapr!( String::rnew(response_type) );
  let res  = unwrapr!( do_verb(verb_,headers_,url_,query_,body_,response_type_));

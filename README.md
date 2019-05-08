@@ -1,5 +1,12 @@
 R http client package
 
+# Build 
+
+```R
+devtools::build()
+devtools::install()
+```
+
 # Install 
 
 ```R
@@ -22,25 +29,59 @@ cd src/rustlib
 cross build --release --target x86_64-pc-windows-gnu
 ```
  
- 
+# Example 
+
 ```R
- 
-library(teRcenHttp)
+teRcenHttp::GET("https://tercen.com")
 
-GET("https://dev.tercen.com")
-GET("https://dev.tercen.com", response_type="application/octet-stream")
+teRcenHttp::toTSON(c("paste_code=printf();"))
+teRcenHttp::toTSON("fgfg")
+teRcenHttp::toTSON(1)
 
-toJSON(list(hey="42", you=tson.scalar(42.0)))
-toJSON(list(hey="42", you=42.0))
+bytes = teRcenHttp::toTSON(list(name="alex", age=teRcenHttp::tson.scalar(42)))
+teRcenHttp::fromTSON(bytes)
+teRcenHttp::toJSON(list(name="alex", age=teRcenHttp::tson.scalar(42)))
+teRcenHttp::toJSON(list(name="alex", age=(42)))
 
-toTSON(list(hey="42", you=tson.scalar(42.0)))
+teRcenHttp::POST("http://127.0.0.1:4040", body="hello")
+teRcenHttp::POST("http://127.0.0.1:4040", body="hello", content_type="application/json")
+teRcenHttp::POST("http://127.0.0.1:4040", body="hello", content_type="application/octet-stream")
+teRcenHttp::POST("http://127.0.0.1:4040", 
+    body=list(name=teRcenHttp::tson.scalar("alex"), age=teRcenHttp::tson.scalar(42)))
+teRcenHttp::POST("http://127.0.0.1:4040", 
+    body=list(name=teRcenHttp::tson.scalar("alex"), age=teRcenHttp::tson.scalar(42)), content_type="application/json")
+teRcenHttp::POST("http://127.0.0.1:4040", body=teRcenHttp::POST)
+teRcenHttp::POST("http://127.0.0.1:4040", body=NaN)
+teRcenHttp::POST("http://127.0.0.1:4040", body=NaN, content_type="application/json")
 
-fromJSON(toJSON(list(hey="42", you=tson.scalar(42.0))))
-fromJSON(toJSON(list(hey=tson.scalar(42), you=tson.scalar(42.0))))
-
-fromTSON(toTSON(list(hey="42", you=tson.scalar(42.0))))
-fromTSON(toTSON(list(hey="42", you=42.0)))
-
-fromJSON('{"hey":"42", "you":42.0}')
-fromJSON('{"hey":"42", "you":[42.0]}')
+teRcenHttp::POST("http://127.0.0.1:4040", body=seq(0,100))
+teRcenHttp::POST("http://127.0.0.1:4040", body=seq(0,100000000))
+httr::POST("http://127.0.0.1:4040", body=seq(0,100000),  encode="json")
+                
+rbenchmark::benchmark("teRcenHttp" = {
+            res = teRcenHttp::POST("http://127.0.0.1:4040", 
+                body=list(name=teRcenHttp::tson.scalar("alex"), age=teRcenHttp::tson.scalar(42), list=seq(0,100000)))
+            # print(res)
+          },
+          "httr" = {
+            res = httr::POST("http://127.0.0.1:4040", 
+                            body=list(name=teRcenHttp::tson.scalar("alex"), age=teRcenHttp::tson.scalar(42), list=seq(0,100000)), encode="json")
+            # print(res)
+          },
+          replications = 10,
+          columns = c("test", "replications", "elapsed",
+                      "relative", "user.self", "sys.self"))
+                      
+                      
+rbenchmark::benchmark("teRcenHttp" = {
+            res = teRcenHttp::GET("http://tercen.com")
+            # print(res)
+          },
+          "httr" = {
+            res = httr::GET("http://tercen.com")
+            # print(res)
+          },
+          replications = 10,
+          columns = c("test", "replications", "elapsed",
+                      "relative", "user.self", "sys.self"))
 ```

@@ -1,14 +1,30 @@
 [package]
 name = "rustlib"
 version = "0.1.0"
+authors = ["Alexandre Maurel <alexandre.maurel@gmail.com>"]
+edition = "2018"
 
 [dependencies]
 bytes = "*"
 url="*"
 rustr = "*"
-reqwest = "*"
-rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.1" }
-rtsonlib = { git = "https://github.com/tercen/rtsonlib", tag = "0.2.5" }
+#rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.8" }
+rustson = { path = "../../../../rustson"}
+#rtsonlib = { git = "https://github.com/tercen/rtsonlib", tag = "0.2.8" }
+rtsonlib = { path = "../../../../rtsonlib" }
+hyper = "0.12.28"
+hyper-tls = "0.3.2"
+#native-tls="0.2.2"
+tokio = "0.1.18"
+futures = "0.1"
+http = "0.1"
+lazy_static = "1.3.0"
+#hyper-rustls = "0.16.1"
+
+[dependencies.tokio-global]
+version = "0.2"
+features = ["multi"] #or multi for multithreaded runtim
+
 
 [lib]
 name = "rustlib"
