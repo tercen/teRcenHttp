@@ -8,10 +8,10 @@ edition = "2018"
 bytes = "*"
 url="*"
 rustr = "*"
-#rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.8" }
-rustson = { path = "../../../../rustson"}
-#rtsonlib = { git = "https://github.com/tercen/rtsonlib", tag = "0.2.8" }
-rtsonlib = { path = "../../../../rtsonlib" }
+rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.10" }
+#rustson = { path = "../../../../rustson"}
+rtsonlib = { git = "https://github.com/tercen/rtsonlib", tag = "0.2.10" }
+#rtsonlib = { path = "../../../../rtsonlib" }
 hyper = "0.12.28"
 hyper-tls = "0.3.2"
 #native-tls="0.2.2"

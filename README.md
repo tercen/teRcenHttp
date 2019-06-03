@@ -34,7 +34,6 @@ cross build --release --target x86_64-pc-windows-gnu
 ```R
 teRcenHttp::GET("https://tercen.com")
 
-teRcenHttp::toTSON(c("paste_code=printf();"))
 teRcenHttp::toTSON("fgfg")
 teRcenHttp::toTSON(1)
 
@@ -56,32 +55,5 @@ teRcenHttp::POST("http://127.0.0.1:4040", body=NaN, content_type="application/js
 
 teRcenHttp::POST("http://127.0.0.1:4040", body=seq(0,100))
 teRcenHttp::POST("http://127.0.0.1:4040", body=seq(0,100000000))
-httr::POST("http://127.0.0.1:4040", body=seq(0,100000),  encode="json")
                 
-rbenchmark::benchmark("teRcenHttp" = {
-            res = teRcenHttp::POST("http://127.0.0.1:4040", 
-                body=list(name=teRcenHttp::tson.scalar("alex"), age=teRcenHttp::tson.scalar(42), list=seq(0,100000)))
-            # print(res)
-          },
-          "httr" = {
-            res = httr::POST("http://127.0.0.1:4040", 
-                            body=list(name=teRcenHttp::tson.scalar("alex"), age=teRcenHttp::tson.scalar(42), list=seq(0,100000)), encode="json")
-            # print(res)
-          },
-          replications = 10,
-          columns = c("test", "replications", "elapsed",
-                      "relative", "user.self", "sys.self"))
-                      
-                      
-rbenchmark::benchmark("teRcenHttp" = {
-            res = teRcenHttp::GET("http://tercen.com")
-            # print(res)
-          },
-          "httr" = {
-            res = httr::GET("http://tercen.com")
-            # print(res)
-          },
-          replications = 10,
-          columns = c("test", "replications", "elapsed",
-                      "relative", "user.self", "sys.self"))
 ```
