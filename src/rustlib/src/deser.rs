@@ -11,7 +11,7 @@ type ReaderResult<T> = std::result::Result<T, TsonError>;
 type Receiver = mpsc::Receiver<Result<BodyItem, hyper::error::Error>>;
 
 struct ReceiverReader<'r> {
-    is_done: bool,
+    pub is_done: bool,
     receiver: &'r Receiver,
     inner: Cursor<Bytes>,
 }
@@ -24,10 +24,23 @@ impl<'r> ReceiverReader<'r> {
     }
 
     fn ensure(&mut self, n: usize) -> ReaderResult<()> {
-        if self.inner.remaining() < n {
+        if self.inner.remaining() >= n {
+            return Ok(());
+        }
+
+        if (self.is_done){
+            return Err(TsonError::new("teRcenHttp -- ReceiverReader -- ensure -- EOF"));
+        }
+
+        loop {
+
             self.next_item()?;
-            if self.inner.remaining() < n {
-                return Err(TsonError::new("EOF"));
+            if self.inner.remaining() < n   {
+                if (self.is_done){
+                    return Err(TsonError::new("teRcenHttp -- ReceiverReader -- ensure -- EOF"));
+                }
+            } else {
+                break;
             }
         }
         Ok(())
@@ -169,7 +182,8 @@ impl ResponseReader {
         let parts = self.read_parts(receiver)?;
         let response_type = self.response_type_from(&parts);
         let mut reader = ReceiverReader::new(receiver);
-        self.build_r_response(parts, response_type.read(&mut reader)?)
+        let result = self.build_r_response(parts, response_type.read(&mut reader)?);
+        return result;
     }
 
     pub fn read_parts(&self, receiver: &Receiver) -> RResult<Parts> {

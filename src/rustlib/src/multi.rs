@@ -126,6 +126,9 @@ impl Part {
             }
         }
 
+        writer.add_u8(13)?;
+        writer.add_u8(10)?;
+
         Ok(())
     }
 }

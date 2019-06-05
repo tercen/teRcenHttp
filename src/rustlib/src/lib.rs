@@ -208,19 +208,25 @@ pub fn do_verb_url_r<T>(verb: String,
             let send_done = send.clone();
             let send_clone_err = send.clone();
 
-
             client.request(request).and_then(move |response| {
                 let (parts, body) = response.into_parts();
-                send.send(Ok(BodyItem::H(parts))).unwrap();
+
+                send.send(Ok(BodyItem::H(parts))).expect("send parts");
+
                 body.for_each(move |chunk| {
-                    send.send(Ok(BodyItem::C(chunk))).unwrap();
+                    send.send(Ok(BodyItem::C(chunk))).expect("send chunck");
                     Ok(())
                 })
             }).and_then(move |_| {
-                send_done.send(Ok(BodyItem::Done)).unwrap();
-                Ok(())
+                // channel can be closed because the ResponseReader did not read to the end ...
+                match send_done.send(Ok(BodyItem::Done)) {
+                    Ok(_) => Ok(()),
+                    Err(_) => {
+                        Ok(())
+                    },
+                }
             }).map_err(move |err| {
-                send_clone_err.send(Err(err)).unwrap();
+                send_clone_err.send(Err(err)).expect("send error");
             }).spawn();
 
             // Send the body using sender
@@ -228,15 +234,43 @@ pub fn do_verb_url_r<T>(verb: String,
             futures::lazy(|| {
                 let mut writer = SenderWriter::new(sender);
                 body_writer.write(&mut writer)?;
-                writer.flush().map_err(|e| RError::unknown(e.to_string()))
+                writer.close().map_err(|e| RError::unknown(e.to_string()))
             }).wait()?;
 
-            // Receive response
-            ResponseReader::new(response_type.into() ).read(&recv)
+            ResponseReader::new(response_type.into()).read(&recv)
+
         }
         Err(ref e) => {
             Err(tercen_http_error(&e.to_string()))
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_poll_fn() {
+        println!("hey test_poll_fn");
+
+        use futures::Future;
+        use futures::future::poll_fn;
+        use futures::{Async, Poll};
+
+        let mut counter = 10;
+
+        let read_future = poll_fn(move || -> Poll<String, std::io::Error> {
+            if counter < 0 {
+                return Ok(Async::Ready("Hello, World!".into()));
+            }
+            counter -= 1;
+            Ok(Async::NotReady)
+        });
+
+
+        let r = read_future.wait().unwrap();
+
+        println!("result {}", r);
     }
 }
 

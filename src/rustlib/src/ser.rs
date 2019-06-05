@@ -59,6 +59,14 @@ impl SenderWriter {
         SenderWriter { buf: Vec::with_capacity(1048576), sender }
     }
 
+    pub fn close(&mut self)  -> TsonResult<()> {
+        self.flush()?;
+        match self.sender.close() {
+            Ok(_) => return Ok(()),
+            Err(e) => return Err(TsonError::new(e.to_string())),
+        }
+    }
+
     fn on_put(&mut self) -> TsonResult<()> {
         if self.buf.len() > 1048576 {
             self.flush()?;
@@ -76,7 +84,9 @@ impl SenderWriter {
                         Ok(_) => return Ok(()),
                         Err(chunk) => {
                             some_chunk.replace(chunk);
-                            std::thread::yield_now();
+//                            std::thread::yield_now();
+
+                            std::thread::sleep_ms(2);
                         }
                     }
                 }
