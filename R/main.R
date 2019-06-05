@@ -11,7 +11,6 @@ GET = function(url,
                headers=structure(list(),names=character(0)),
                query=structure(list(), names=character(0)),
                response_type="default") {
-  print(paste0("GET ", url, " headers -- ", headers, " -- query -- " , query , " -- response_type -- ", response_type))
   do_verb_r("GET",headers,url,query,double(),"application/tson",response_type)
 }
 
@@ -29,7 +28,6 @@ POST = function(url,
                 body=NULL,
                 content_type="application/tson",
                 response_type="default") {
-  print(paste0("POST ", url, " headers -- ", headers, " -- query -- " , query , " -- response_type -- ", response_type))
   do_verb_r("POST",headers,url,query,body,content_type,response_type)
 }
 
@@ -40,7 +38,6 @@ PUT = function(url,
                body=NULL,
                content_type="application/tson",
                response_type="default") {
-  print(paste0("PUT ", url, " headers -- ", headers, " -- query -- " , query , " -- response_type -- ", response_type))
   do_verb_r("PUT",headers,url,query,body,content_type,response_type)
 }
 
