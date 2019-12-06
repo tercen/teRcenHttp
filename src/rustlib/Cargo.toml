@@ -5,7 +5,8 @@ authors = ["Alexandre Maurel <alexandre.maurel@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-bytes = "*"
+bytes = "0.4.12"
+smallvec="0.6.9"
 url="*"
 rustr = "*"
 rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.10" }
