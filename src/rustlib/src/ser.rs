@@ -6,10 +6,11 @@ use bytes::BufMut;
 use rustson::ser::Writer;
 use hyper::body::Sender;
 use hyper::body::Chunk;
+//use std::{thread, time};
 //use futures::Future;
 
 pub trait BodyWriter {
-    fn write(&self, writer: &mut Writer) -> RTsonResult<()>;
+    fn write(&self, writer: &mut dyn Writer) -> RTsonResult<()>;
 }
 
 pub struct TsonBodyWriter {
@@ -23,13 +24,13 @@ impl TsonBodyWriter {
 }
 
 impl BodyWriter for TsonBodyWriter {
-    fn write(&self, writer: &mut Writer) -> RTsonResult<()> {
+    fn write(&self, writer: &mut dyn Writer) -> RTsonResult<()> {
         RSerializer::new().write(&self.object, writer)
     }
 }
 
 impl BodyWriter for String {
-    fn write(&self, writer: &mut Writer) -> RTsonResult<()> {
+    fn write(&self, writer: &mut dyn Writer) -> RTsonResult<()> {
         for b in self.as_bytes() {
             writer.add_u8(*b)?;
         }
@@ -38,7 +39,7 @@ impl BodyWriter for String {
 }
 
 impl BodyWriter for RawVec {
-    fn write(&self, writer: &mut Writer) -> RTsonResult<()> {
+    fn write(&self, writer: &mut dyn Writer) -> RTsonResult<()> {
         let range = std::ops::Range { start: 0 as usize, end: self.rsize() as usize };
         unsafe {
             for i in range {
@@ -86,7 +87,8 @@ impl SenderWriter {
                             some_chunk.replace(chunk);
 //                            std::thread::yield_now();
 
-                            std::thread::sleep_ms(2);
+                            let duration = std::time::Duration::from_millis(2);
+                            std::thread::sleep(duration);
                         }
                     }
                 }

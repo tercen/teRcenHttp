@@ -28,7 +28,7 @@ impl<'r> ReceiverReader<'r> {
             return Ok(());
         }
 
-        if (self.is_done){
+        if self.is_done {
             return Err(TsonError::new("teRcenHttp -- ReceiverReader -- ensure -- EOF"));
         }
 
@@ -36,7 +36,7 @@ impl<'r> ReceiverReader<'r> {
 
             self.next_item()?;
             if self.inner.remaining() < n   {
-                if (self.is_done){
+                if self.is_done {
                     return Err(TsonError::new("teRcenHttp -- ReceiverReader -- ensure -- EOF"));
                 }
             } else {
@@ -136,7 +136,7 @@ pub enum ResponseType {
 
 
 impl RDeserializer for ResponseType {
-    fn read(&self, reader: &mut Reader) -> RTsonResult<SEXP> {
+    fn read(&self, reader: &mut dyn Reader) -> RTsonResult<SEXP> {
         match self {
             ResponseType::TSON => RTsonDeserializer {}.read(reader),
             ResponseType::JSON => RJsonDeserializer {}.read(reader),

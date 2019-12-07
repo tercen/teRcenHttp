@@ -74,7 +74,7 @@ impl Part {
         }
     }
 
-    fn write_headers(&self, writer: &mut Writer) -> RTsonResult<()> {
+    fn write_headers(&self, writer: &mut dyn Writer) -> RTsonResult<()> {
         let mut bytes: Vec<u8> = Vec::new();
         for (k, v) in &self.headers {
             bytes.put(k);
@@ -94,7 +94,7 @@ impl Part {
         Ok(())
     }
 
-    fn write_content(&self, writer: &mut Writer) -> RTsonResult<()> {
+    fn write_content(&self, writer: &mut dyn Writer) -> RTsonResult<()> {
         let content_type = self.headers.get("content-type")
             .ok_or(RTsonError::new("headers.content-type is required"))?;
 
@@ -158,7 +158,7 @@ impl MultiPart {
         }
     }
 
-    pub fn write_multipart(&self, writer: &mut Writer) -> RTsonResult<()> {
+    pub fn write_multipart(&self, writer: &mut dyn Writer) -> RTsonResult<()> {
         for part in &self.parts {
             self.write_frontier(writer)?;
             part.write_headers(writer)?;
@@ -169,7 +169,7 @@ impl MultiPart {
         Ok(())
     }
 
-    fn write_frontier(&self, writer: &mut Writer) -> RTsonResult<()> {
+    fn write_frontier(&self, writer: &mut dyn Writer) -> RTsonResult<()> {
         let mut bytes: Vec<u8> = Vec::new();
         bytes.put("--");
         bytes.put(&self.frontier);
@@ -183,7 +183,7 @@ impl MultiPart {
         Ok(())
     }
 
-    fn write_end(&self, writer: &mut Writer) -> RTsonResult<()> {
+    fn write_end(&self, writer: &mut dyn Writer) -> RTsonResult<()> {
         let mut bytes: Vec<u8> = Vec::new();
         bytes.put("--");
         bytes.put(&self.frontier);
@@ -201,7 +201,7 @@ impl MultiPart {
 }
 
 impl BodyWriter for MultiPart {
-    fn write(&self, writer: &mut Writer) -> RTsonResult<()>{
+    fn write(&self, writer: &mut dyn Writer) -> RTsonResult<()>{
         self.write_multipart( writer)
     }
 }
