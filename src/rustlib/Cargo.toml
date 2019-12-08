@@ -5,9 +5,9 @@ authors = ["Alexandre Maurel <alexandre.maurel@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-bytes = "0.4.12"
-url="*"
-rustr = "*"
+bytes = "~0.4.12"
+url="~2.1.0"
+rustr = "~0.1.9"
 rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.10" }
 #rustson = { path = "../../../../rustson"}
 rtsonlib = { git = "https://github.com/tercen/rtsonlib", tag = "0.2.10" }
