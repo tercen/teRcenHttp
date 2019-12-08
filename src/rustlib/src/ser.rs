@@ -10,7 +10,7 @@ use hyper::body::Chunk;
 //use futures::Future;
 
 pub trait BodyWriter {
-    fn write(&self, writer: &mut Writer) -> RTsonResult<()>;
+    fn write(&self, writer: &mut dyn Writer) -> RTsonResult<()>;
 }
 
 pub struct TsonBodyWriter {
