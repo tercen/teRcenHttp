@@ -19,7 +19,7 @@ devtools::install_github("tercen/teRcenHttp", args="--no-multiarch")
 ```bash
 R -e "rustinr::rustrize()"
 cd src/rustlib
-cargo build
+cargo build --release
 ```
 
 # compilation
@@ -33,6 +33,8 @@ cross build --release --target x86_64-pc-windows-gnu
 
 ```R
 teRcenHttp::GET("https://tercen.com")
+
+teRcenHttp::GET("https://tercen.com", response_type="binary")
 
 teRcenHttp::toTSON("fgfg")
 teRcenHttp::toTSON(1)

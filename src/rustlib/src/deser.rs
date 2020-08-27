@@ -6,6 +6,7 @@ use rustson::deser::Reader;
 use bytes::{Buf, Bytes};
 use rtsonlib::deser::{RDeserializer, RTsonDeserializer,
                       RJsonDeserializer, RBinaryDeserializer, RUTF8Deserializer};
+use std::io::BufRead;
 
 type ReaderResult<T> = std::result::Result<T, TsonError>;
 type Receiver = mpsc::Receiver<Result<BodyItem, hyper::error::Error>>;
@@ -73,11 +74,15 @@ impl<'r> ReceiverReader<'r> {
 impl<'r> Reader for ReceiverReader<'r> {
     fn read_all(&mut self, buf: &mut Vec<u8>) -> ReaderResult<()> {
         buf.extend_from_slice(self.inner.get_ref());
+
+        self.inner.consume(self.inner.bytes().len());
+
         loop {
             self.next_item()?;
             if self.is_done { break; }
             buf.extend_from_slice(self.inner.get_ref());
-        }
+            self.inner.consume(self.inner.bytes().len());
+         }
 
         Ok(())
     }
