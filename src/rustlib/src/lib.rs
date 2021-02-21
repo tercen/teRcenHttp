@@ -45,7 +45,7 @@ use hyper_sync_rustls::TlsClient;
 use hyper::net::{SslClient, HttpConnector, HttpsConnector, Streaming};
 use hyper::client::{ProxyConfig, RequestBuilder, Request, pool};
 use hyper::header::{Headers, Connection, Host, ContentLength, Location};
- use hyper::http::h1::Http11Protocol;
+use hyper::http::h1::Http11Protocol;
 use hyper::http::Protocol;
 use std::str::FromStr;
 
@@ -208,8 +208,13 @@ pub fn do_verb_url_r<T>(verb: String,
     //     .for_each(|e| m_headers.set_raw(e.0.to_string(),
     //                                              vec![ e.1.as_bytes().to_vec()] ));
 
+    let protocol = if url.scheme() == "https" {
+        let tls = hyper_sync_rustls::TlsClient::new();
+        Http11Protocol::with_connector(HttpsConnector::new(tls))
+    } else {
+        Http11Protocol::with_connector(hyper::client::pool::Pool::new(pool::Config::default()))
+    };
 
-    let protocol = Http11Protocol::with_connector(hyper::client::pool::Pool::new(pool::Config::default()));
 
     let mut req = {
         let (host, port) = get_host_and_port(&url).unwrap();
@@ -319,8 +324,6 @@ pub fn do_verb_url_r<T>(verb: String,
     //
     // println!("Response: {}", res.status);
     // println!("Headers:\n{}", res.headers);
-
-
 }
 
 // pub fn do_verb_url_r<T>(verb: String,
