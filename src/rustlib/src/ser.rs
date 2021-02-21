@@ -4,8 +4,8 @@ use super::*;
 
 use bytes::BufMut;
 use rustson::ser::Writer;
-use hyper::body::Sender;
-use hyper::body::Chunk;
+// use hyper::body::Sender;
+// use hyper::body::Chunk;
 //use std::{thread, time};
 //use futures::Future;
 
@@ -51,21 +51,23 @@ impl BodyWriter for RawVec {
 }
 
 pub struct SenderWriter {
-    buf: Vec<u8>,
-    sender: Sender,
+    pub buf: Vec<u8>,
+    pub sender: Request<Streaming>,
 }
 
 impl SenderWriter {
-    pub fn new(sender: Sender) -> SenderWriter {
+    pub fn new(sender: Request<Streaming>) -> SenderWriter {
         SenderWriter { buf: Vec::with_capacity(1048576), sender }
     }
 
+
     pub fn close(&mut self)  -> TsonResult<()> {
-        self.flush()?;
-        match self.sender.close() {
-            Ok(_) => return Ok(()),
-            Err(e) => return Err(TsonError::new(e.to_string())),
-        }
+        self.flush()
+
+        // match self.sender.close() {
+        //     Ok(_) => return Ok(()),
+        //     Err(e) => return Err(TsonError::new(e.to_string())),
+        // }
     }
 
     fn on_put(&mut self) -> TsonResult<()> {
@@ -76,25 +78,9 @@ impl SenderWriter {
     }
 
     pub fn flush(&mut self) -> TsonResult<()> {
-        let mut some_chunk = Some(Chunk::from(self.buf.clone()));
-        self.buf.clear();
-        loop {
-            match self.sender.poll_ready() {
-                Ok(_) => {
-                    match self.sender.send_data(some_chunk.take().unwrap()) {
-                        Ok(_) => return Ok(()),
-                        Err(chunk) => {
-                            some_chunk.replace(chunk);
-//                            std::thread::yield_now();
-
-                            let duration = std::time::Duration::from_millis(2);
-                            std::thread::sleep(duration);
-                        }
-                    }
-                }
-                Err(e) => return Err(TsonError::new(e.to_string())),
-            }
-        }
+        let mut buf = Cursor::new(&mut self.buf);
+        std::io::copy(&mut buf, &mut self.sender);
+        self.sender.flush().map_err(|e| TsonError::new(e.to_string()))
     }
 }
 
