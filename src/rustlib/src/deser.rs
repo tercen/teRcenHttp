@@ -6,21 +6,21 @@ use rustson::deser::Reader;
 use bytes::{Buf, Bytes};
 use rtsonlib::deser::{RDeserializer, RTsonDeserializer,
                       RJsonDeserializer, RBinaryDeserializer, RUTF8Deserializer};
-use std::io::BufRead;
+use std::io::{BufRead, Read};
+use hyper::client::Response;
+use std::str::from_utf8;
+use hyper::header::ContentType;
 
 type ReaderResult<T> = std::result::Result<T, TsonError>;
-type Receiver = mpsc::Receiver<Result<BodyItem, hyper::error::Error>>;
 
 struct ReceiverReader<'r> {
     pub is_done: bool,
-    receiver: &'r Receiver,
+    receiver: &'r mut Response,
     inner: Cursor<Bytes>,
 }
 
-//impl<'r> std::panic::UnwindSafe for &  ReceiverReader<'r>{}
-
 impl<'r> ReceiverReader<'r> {
-    fn new(receiver: &'r Receiver) -> ReceiverReader<'r> {
+    fn new(receiver: &'r mut Response) -> ReceiverReader<'r> {
         ReceiverReader { is_done: false, receiver, inner: Cursor::new(Bytes::with_capacity(0)) }
     }
 
@@ -34,9 +34,8 @@ impl<'r> ReceiverReader<'r> {
         }
 
         loop {
-
             self.next_item()?;
-            if self.inner.remaining() < n   {
+            if self.inner.remaining() < n {
                 if self.is_done {
                     return Err(TsonError::new("teRcenHttp -- ReceiverReader -- ensure -- EOF"));
                 }
@@ -48,41 +47,36 @@ impl<'r> ReceiverReader<'r> {
     }
 
     fn next_item(&mut self) -> ReaderResult<()> {
-        let body_item = self.receiver.recv().map_err(TsonError::other)?.map_err(TsonError::other)?;
-        match body_item {
-            BodyItem::C(chunk) => {
-                if self.inner.remaining() > 0 {
-                    self.inner.get_mut().extend_from_slice(&chunk.into_bytes());
-                } else {
-                    let new_inner = Cursor::new(chunk.into_bytes());
-                    std::mem::replace(&mut self.inner, new_inner);
-                }
-
-                return Ok(());
-            }
-            BodyItem::Done => {
-                self.is_done = true;
-                return Ok(());
-            }
-            _ => {
-                return Err(TsonError::new("bad response"));
-            }
+        let mut buffer = [0; 4096];
+        let n = self.receiver.read(&mut buffer[..]).map_err(TsonError::other )?;
+        if n == 0 {
+            self.is_done = true;
+            return Ok(());
         }
+        if self.inner.remaining() > 0 {
+            self.inner.get_mut().extend_from_slice(&buffer[0..n]);
+        } else {
+            let new_inner = Cursor::new(buffer[0..n].into());
+            let _old = std::mem::replace(&mut self.inner, new_inner);
+        }
+
+        Ok(())
     }
 }
 
 impl<'r> Reader for ReceiverReader<'r> {
     fn read_all(&mut self, buf: &mut Vec<u8>) -> ReaderResult<()> {
         buf.extend_from_slice(self.inner.get_ref());
-
-        self.inner.consume(self.inner.bytes().len());
+        self.inner.consume(   self.inner.get_ref().len());
+        // self.inner.consume(self.inner.bytes().len());
 
         loop {
             self.next_item()?;
             if self.is_done { break; }
             buf.extend_from_slice(self.inner.get_ref());
-            self.inner.consume(self.inner.bytes().len());
-         }
+            self.inner.consume(self.inner.get_ref().len());
+            // self.inner.consume(self.inner.bytes().len());
+        }
 
         Ok(())
     }
@@ -183,31 +177,26 @@ pub struct ResponseReader {
 impl ResponseReader {
     pub fn new(response_type: ResponseType) -> ResponseReader { ResponseReader { response_type } }
 
-    pub fn read(&self, receiver: &Receiver) -> RResult<SEXP> {
-        let parts = self.read_parts(receiver)?;
-        let response_type = self.response_type_from(&parts);
-        let mut reader = ReceiverReader::new(receiver);
-        let result = self.build_r_response(parts, response_type.read(&mut reader)?);
+    pub fn read(&self, response: &mut Response) -> RResult<SEXP> {
+
+        // let parts = self.read_parts(receiver)?;
+        let response_type = self.response_type_from(&response.headers);
+        let mut reader = ReceiverReader::new(response);
+        let obj = response_type.read(&mut reader)?;
+        let result = self.build_r_response(response, obj);
         return result;
     }
 
-    pub fn read_parts(&self, receiver: &Receiver) -> RResult<Parts> {
-        match (receiver.recv().map_err(RError::other)?).map_err(RError::other)? {
-            BodyItem::H(parts) => {
-                Ok(parts)
-            }
-            _ => Err(RError::unknown("bad response".to_string())),
-        }
-    }
-
-    fn response_type_from(&self, parts: &Parts) -> ResponseType {
+    fn response_type_from(&self, headers: &Headers) -> ResponseType {
         match self.response_type {
             ResponseType::DEFAULT => {
-                match parts.headers.get("content-type") {
+
+                match headers.get::<ContentType>() {
                     None => ResponseType::BINARY,
                     Some(content_type) => {
-                        let resp_type = content_type.to_str().unwrap();
-                        match resp_type {
+
+                        let resp_type = content_type.to_string();
+                        match resp_type.as_str() {
                             "application/tson" => ResponseType::TSON,
                             "application/json" => ResponseType::JSON,
                             "text/html; charset=utf-8" | "text/plain; charset=utf-8" => ResponseType::UTF8,
@@ -225,27 +214,20 @@ impl ResponseReader {
             _ => self.response_type.clone()
         }
     }
-
-    fn build_r_response(&self, parts: Parts, object: SEXP) -> RResult<SEXP> {
+    //
+    fn build_r_response(&self, response: &Response, object: SEXP) -> RResult<SEXP> {
         let mut names = CharVec::alloc(3);
         let mut values = RList::alloc(3);
 
         names.set(0, "status")?;
-        values.set(0, parts.status.as_u16().intor()?)?;
+        values.set(0, response.status.to_u16().intor()?)?;
         names.set(1, "headers")?;
 
         let mut h: Vec<String> = vec![];
 
-        for (key, value) in parts.headers.iter() {
-            h.push(key.as_str().to_string());
-            match value.to_str() {
-                Err(error) => {
-                    return rraise(error);
-                }
-                Ok(v) => {
-                    h.push(v.to_string());
-                }
-            }
+        for header_view in response.headers.iter() {
+            h.push(header_view.name().to_string());
+            h.push(header_view.value_string());
         }
 
         values.set(1, h.intor()?)?;
