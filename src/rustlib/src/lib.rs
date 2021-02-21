@@ -175,38 +175,6 @@ pub fn do_verb_url_r<T>(verb: String,
                         url: Url,
                         body_writer: T,
                         response_type: String) -> RResult<SEXP> where T: BodyWriter {
-    let tls = hyper_sync_rustls::TlsClient::new();
-    let client = match env::var("HTTP_PROXY") {
-        Ok(mut proxy) => {
-            // parse the proxy, message if it doesn't make sense
-            let mut port = 80;
-            if let Some(colon) = proxy.rfind(':') {
-                port = proxy[colon + 1..].parse().unwrap_or_else(|e| {
-                    panic!(
-                        "HTTP_PROXY is malformed: {:?}, port parse error: {}",
-                        proxy,
-                        e
-                    );
-                });
-                proxy.truncate(colon);
-            }
-
-            // connector here gets us to the proxy. tls then is used for https
-            // connections via the proxy (tunnelled through the CONNECT method)
-            let connector = HttpConnector::default();
-            let proxy_config = ProxyConfig::new("http", proxy, port, connector, tls);
-            Client::with_proxy_config(proxy_config)
-        }
-        _ => {
-            let connector = HttpsConnector::new(tls);
-            Client::with_connector(connector)
-        }
-    };
-
-    // let mut m_headers = Headers::new();
-    // headers.iter()
-    //     .for_each(|e| m_headers.set_raw(e.0.to_string(),
-    //                                              vec![ e.1.as_bytes().to_vec()] ));
 
     let protocol = if url.scheme() == "https" {
         let tls = hyper_sync_rustls::TlsClient::new();
@@ -215,15 +183,9 @@ pub fn do_verb_url_r<T>(verb: String,
         Http11Protocol::with_connector(hyper::client::pool::Pool::new(pool::Config::default()))
     };
 
-
     let mut req = {
-        let (host, port) = get_host_and_port(&url).unwrap();
-        let message = protocol.new_message(host, port, url.scheme()).unwrap();
-
-        // let mut message = try!(client.protocol.new_message(&host, port, url.scheme()));
-        // if url.scheme() == "http" && client.proxy.is_some() {
-        //     message.set_proxied(true);
-        // }
+        let (host, port) = get_host_and_port(&url).map_err(|e| RError::unknown(e.to_string()))?;
+        let message = protocol.new_message(host, port, url.scheme()).map_err(|e| RError::unknown(e.to_string()))?;
 
         let mut h = Headers::new();
         h.set(Host {
@@ -235,95 +197,19 @@ pub fn do_verb_url_r<T>(verb: String,
         }
 
         let headers = h;
-        Request::with_headers_and_message(Method::from_str(verb.as_str()).unwrap(),
+        Request::with_headers_and_message(Method::from_str(
+            verb.as_str()).map_err(|e| RError::unknown(e.to_string()))?,
                                           url, headers, message)
     };
 
-    // try!(req.set_write_timeout(client.write_timeout));
-    // try!(req.set_read_timeout(client.read_timeout));
-    // let can_have_body = match method {
-    //     Method::Get | Method::Head => false,
-    //     _ => true
-    // };
+    let mut streaming = SenderWriter::new(req.start()
+        .map_err(|e| RError::unknown(e.to_string()))?);
 
-    // let mut body = if can_have_body {
-    //     body
-    // } else {
-    //     None
-    // };
-    //
-    // match (can_have_body, body.as_ref()) {
-    //     (true, Some(body)) => match body.size() {
-    //         Some(size) => req.headers_mut().set(ContentLength(size)),
-    //         None => (), // chunked, Request will add it automatically
-    //     },
-    //     (true, None) => req.headers_mut().set(ContentLength(0)),
-    //     _ => () // neither
-    // }
-
-    type Result<T> = std::result::Result<T, TsonError>;
-
-    let mut streaming = SenderWriter::new(req.start().unwrap());
     body_writer.write(&mut streaming)?;
 
-    let mut res = streaming.sender.send().unwrap();
+    let mut res = streaming.sender.send().map_err(|e| RError::unknown(e.to_string()))?;
 
     ResponseReader::new(response_type.into()).read(&mut res)
-
-
-    // if !res.status.is_redirection() {
-    //     return Ok(res)
-    // }
-    // debug!("redirect code {:?} for {}", res.status, url);
-    //
-    // let loc = {
-    //     // punching borrowck here
-    //     let loc = match res.headers.get::<Location>() {
-    //         Some(&Location(ref loc)) => {
-    //             Some(url.join(loc))
-    //         }
-    //         None => {
-    //             debug!("no Location header");
-    //             // could be 304 Not Modified?
-    //             None
-    //         }
-    //     };
-    //     match loc {
-    //         Some(r) => r,
-    //         None => return Ok(res)
-    //     }
-    // };
-    // url = match loc {
-    //     Ok(u) => u,
-    //     Err(e) => {
-    //         debug!("Location header had invalid URI: {:?}", e);
-    //         return Ok(res);
-    //     }
-    // };
-    // match client.redirect_policy {
-    //     // separate branches because they can't be one
-    //     RedirectPolicy::FollowAll => (), //continue
-    //     RedirectPolicy::FollowIf(cond) if cond(&url) => (), //continue
-    //     _ => return Ok(res),
-    // }
-
-    // body_writer.write(&req);
-
-    // let builder = client
-    //     .request(verb.parse().unwrap(),
-    //              &url.to_string())
-    //     .headers(m_headers).send()
-    //     ;
-
-
-    // let mut res = client
-    //     .get(&url.to_string())
-    //     .header(Connection::close())
-    //     .send()
-    //     .unwrap();
-    //
-    // println!("Response: {}", res.status);
-    // println!("Headers:\n{}", res.headers);
 }
 
 // pub fn do_verb_url_r<T>(verb: String,
