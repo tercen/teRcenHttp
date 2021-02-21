@@ -209,7 +209,8 @@ pub fn do_verb_url_r<T>(verb: String,
 
     streaming.close();
 
-    let mut res = streaming.sender.send().map_err(|e| RError::unknown(e.to_string()))?;
+    let mut res = streaming.sender.send()
+        .map_err(|e| RError::unknown(e.to_string()))?;
 
     ResponseReader::new(response_type.into()).read(&mut res)
 }
