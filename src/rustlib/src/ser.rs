@@ -62,7 +62,8 @@ impl SenderWriter {
 
 
     pub fn close(&mut self)  -> TsonResult<()> {
-        self.flush()
+        self.flush();
+        self.sender.flush().map_err(|e| TsonError::new(e.to_string()))
     }
 
     fn on_put(&mut self) -> TsonResult<()> {
@@ -76,7 +77,6 @@ impl SenderWriter {
         let mut buf = Cursor::new(&mut self.buf);
         std::io::copy(&mut buf, &mut self.sender);
         self.buf.clear();
-        self.sender.flush().map_err(|e| TsonError::new(e.to_string()))
     }
 }
 
