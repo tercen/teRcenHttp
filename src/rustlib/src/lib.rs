@@ -45,8 +45,7 @@ use hyper_sync_rustls::TlsClient;
 use hyper::net::{SslClient, HttpConnector, HttpsConnector, Streaming};
 use hyper::client::{ProxyConfig, RequestBuilder, Request, pool};
 use hyper::header::{Headers, Connection, Host, ContentLength, Location};
-use tokio_global::futures::Stream;
-use hyper::http::h1::Http11Protocol;
+ use hyper::http::h1::Http11Protocol;
 use hyper::http::Protocol;
 use std::str::FromStr;
 
