@@ -77,6 +77,7 @@ impl SenderWriter {
         let mut buf = Cursor::new(&mut self.buf);
         std::io::copy(&mut buf, &mut self.sender);
         self.buf.clear();
+        Ok(())
     }
 }
 
