@@ -47,6 +47,7 @@ impl<'r, T : Read> ReceiverReader<'r, T> {
     }
 
     fn next_item(&mut self) -> ReaderResult<()> {
+        println!("next_item -- ");
         let mut buffer = [0; 4096];
         let read_result = self.receiver.read(&mut buffer[..]).map_err(TsonError::other );
         if read_result.is_err() {
@@ -70,6 +71,7 @@ impl<'r, T : Read> ReceiverReader<'r, T> {
 
 impl<'r, T: Read> Reader for ReceiverReader<'r, T> {
     fn read_all(&mut self, buf: &mut Vec<u8>) -> ReaderResult<()> {
+        println!("read_all -- ");
         if self.inner.get_ref().len() > 0 {
             buf.extend_from_slice(self.inner.get_ref());
             self.inner.consume(   self.inner.get_ref().len())
