@@ -122,5 +122,9 @@ impl Writer for SenderWriter {
         self.buf.put_f32_le(value);
         self.on_put()
     }
+
+    fn put_slice(&mut self, src: &[u8]) -> TsonResult<()> {
+        unimplemented!()
+    }
 }
 
