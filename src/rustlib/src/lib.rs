@@ -54,9 +54,9 @@ type TsonResult<T> = std::result::Result<T, TsonError>;
 
 type RTsonResult<T> = std::result::Result<T, RTsonError>;
 
-fn tercen_http_error(msg: &str) -> RError {
-    RError::unknown("teRcenHttp -- ".to_string() + msg)
-}
+// fn tercen_http_error(msg: &str) -> RError {
+//     RError::unknown("teRcenHttp -- ".to_string() + msg)
+// }
 
 
 // #[rustr_export]
@@ -183,7 +183,7 @@ pub fn do_verb_url_r<T>(verb: String,
         Http11Protocol::with_connector(hyper::client::pool::Pool::new(pool::Config::default()))
     };
 
-    let mut req = {
+    let req = {
         let (host, port) = get_host_and_port(&url).map_err(|e| RError::unknown(e.to_string()))?;
         let message = protocol.new_message(host, port, url.scheme()).map_err(|e| RError::unknown(e.to_string()))?;
 
@@ -207,7 +207,7 @@ pub fn do_verb_url_r<T>(verb: String,
 
     body_writer.write(&mut streaming)?;
 
-    streaming.close();
+    streaming.close().map_err(|e| RError::unknown(e.to_string()))?;
 
     let mut res = streaming.sender.send()
         .map_err(|e| RError::unknown(e.to_string()))?;

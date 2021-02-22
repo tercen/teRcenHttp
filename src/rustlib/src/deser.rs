@@ -232,6 +232,7 @@ impl ResponseReader {
         names.set(2, "content")?;
 
         values.set(2, object)?;
+        // values.set(2, "object".intor()?)?;
 
         unsafe {
             Rf_setAttrib(values.s(), R_NamesSymbol, names.s());
