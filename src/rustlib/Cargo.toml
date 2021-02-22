@@ -10,10 +10,10 @@ url="^1.7"
 #rustr = "0.1"
 rustr = { git = "https://github.com/tercen/rustr", tag = "0.1.11" }
 #rustr = { path = "../../rustr" }
-#rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.15" }
-rustson = { path = "../../../rustson"}
-#rtsonlib = { git = "https://github.com/tercen/rtsonlib", tag = "0.2.16" }
-rtsonlib = { path = "../../../rtsonlib" }
+rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.15" }
+#rustson = { path = "../../../rustson"}
+rtsonlib = { git = "https://github.com/tercen/rtsonlib", tag = "0.2.17" }
+#rtsonlib = { path = "../../../rtsonlib" }
 hyper-sync-rustls = "^0.3.0-rc.17"
 
 [dependencies.hyper]

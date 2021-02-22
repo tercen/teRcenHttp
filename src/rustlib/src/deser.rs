@@ -8,7 +8,7 @@ use rtsonlib::deser::{RDeserializer, RTsonDeserializer,
                       RJsonDeserializer, RBinaryDeserializer, RUTF8Deserializer};
 use std::io::{BufRead, Read};
 use hyper::client::Response;
-use std::str::from_utf8;
+
 use hyper::header::ContentType;
 
 type ReaderResult<T> = std::result::Result<T, TsonError>;
