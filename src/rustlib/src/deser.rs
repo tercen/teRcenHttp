@@ -13,14 +13,14 @@ use hyper::header::ContentType;
 
 type ReaderResult<T> = std::result::Result<T, TsonError>;
 
-struct ReceiverReader<'r> {
+struct ReceiverReader<'r, T : Read> {
     pub is_done: bool,
-    receiver: &'r mut Response,
+    receiver: &'r mut T,
     inner: Cursor<Bytes>,
 }
 
-impl<'r> ReceiverReader<'r> {
-    fn new(receiver: &'r mut Response) -> ReceiverReader<'r> {
+impl<'r, T : Read> ReceiverReader<'r, T> {
+    fn new(receiver: &'r mut T) -> Self {
         ReceiverReader { is_done: false, receiver, inner: Cursor::new(Bytes::with_capacity(0)) }
     }
 
@@ -64,7 +64,7 @@ impl<'r> ReceiverReader<'r> {
     }
 }
 
-impl<'r> Reader for ReceiverReader<'r> {
+impl<'r, T: Read> Reader for ReceiverReader<'r, T> {
     fn read_all(&mut self, buf: &mut Vec<u8>) -> ReaderResult<()> {
         buf.extend_from_slice(self.inner.get_ref());
         self.inner.consume(   self.inner.get_ref().len());
@@ -179,10 +179,10 @@ impl ResponseReader {
 
     pub fn read(&self, response: &mut Response) -> RResult<SEXP> {
 
-        // let parts = self.read_parts(receiver)?;
         let response_type = self.response_type_from(&response.headers);
         let mut reader = ReceiverReader::new(response);
         let obj = response_type.read(&mut reader)?;
+        println!("read R {:?}", obj);
         let result = self.build_r_response(response, obj);
         return result;
     }
@@ -190,11 +190,9 @@ impl ResponseReader {
     fn response_type_from(&self, headers: &Headers) -> ResponseType {
         match self.response_type {
             ResponseType::DEFAULT => {
-
                 match headers.get::<ContentType>() {
                     None => ResponseType::BINARY,
                     Some(content_type) => {
-
                         let resp_type = content_type.to_string();
                         match resp_type.as_str() {
                             "application/tson" => ResponseType::TSON,
@@ -242,3 +240,5 @@ impl ResponseReader {
         values.intor()
     }
 }
+
+
