@@ -1,36 +1,19 @@
-#[macro_use]
-// extern crate lazy_static;
 extern crate rustr;
 extern crate rtsonlib;
 extern crate rustson;
 extern crate url;
 extern crate bytes;
-
-// extern crate futures;
-// extern crate tokio;
 extern crate hyper;
 extern crate hyper_sync_rustls;
 
-use hyper::Client;
-
-
-use std::env;
-
 pub mod export;
-
 use url::Url;
-
-use std::sync::mpsc;
-
 use std::io::{Cursor, Write};
-
 use rustr::*;
 use rtsonlib::*;
-use rtsonlib::ser::{RSerializer, Writer};
-
+use rtsonlib::ser::{RSerializer};
 use rustson::TsonError;
 use rustson::Value::*;
-
 use std::collections::HashMap;
 
 mod ser;
@@ -41,10 +24,10 @@ use deser::*;
 use ser::*;
 use multi::*;
 use hyper::method::Method;
-use hyper_sync_rustls::TlsClient;
-use hyper::net::{SslClient, HttpConnector, HttpsConnector, Streaming};
-use hyper::client::{ProxyConfig, RequestBuilder, Request, pool};
-use hyper::header::{Headers, Connection, Host, ContentLength, Location};
+
+use hyper::net::{HttpsConnector, Streaming};
+use hyper::client::{Request, pool};
+use hyper::header::{Headers,  Host};
 use hyper::http::h1::Http11Protocol;
 use hyper::http::Protocol;
 use std::str::FromStr;
@@ -53,11 +36,6 @@ use std::str::FromStr;
 type TsonResult<T> = std::result::Result<T, TsonError>;
 
 type RTsonResult<T> = std::result::Result<T, RTsonError>;
-
-// fn tercen_http_error(msg: &str) -> RError {
-//     RError::unknown("teRcenHttp -- ".to_string() + msg)
-// }
-
 
 // #[rustr_export]
 pub fn to_tson(object: SEXP) -> RResult<RawVec> {

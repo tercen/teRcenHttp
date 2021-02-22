@@ -56,6 +56,9 @@ teRcenHttp::POST("http://127.0.0.1:4040", body=NaN)
 teRcenHttp::POST("http://127.0.0.1:4040", body=NaN, content_type="application/json")
 
 teRcenHttp::POST("http://127.0.0.1:4040", body=seq(0,100))
-teRcenHttp::POST("http://127.0.0.1:4040", body=seq(0,100000000))
+
+data = seq(0,1000000)
+object.size(data)
+teRcenHttp::POST("http://127.0.0.1:4040", body=data, content_type="application/tson")
                 
 ```
