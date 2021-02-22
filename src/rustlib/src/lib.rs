@@ -153,7 +153,6 @@ pub fn do_verb_url_r<T>(verb: String,
                         url: Url,
                         body_writer: T,
                         response_type: String) -> RResult<SEXP> where T: BodyWriter {
-    println!("do_verb_url_r -- response_type {}", response_type);
 
     let protocol = if url.scheme() == "https" {
         let tls = hyper_sync_rustls::TlsClient::new();
@@ -181,28 +180,21 @@ pub fn do_verb_url_r<T>(verb: String,
                                           url, headers, message)
     };
 
-    println!("do_verb_url_r -- streaming  " );
-    let mut streaming = SenderWriter::new(req.start()
+     let mut streaming = SenderWriter::new(req.start()
         .map_err(|e| RError::unknown(e.to_string()))?);
 
     if &verb == "GET" || &verb == "HEAD" {
 
     } else {
-        println!("do_verb_url_r -- streaming 2  " );
+
         body_writer.write(&mut streaming)?;
-        println!("do_verb_url_r -- streaming  3 " );
-        streaming.close().map_err(|e| RError::unknown(e.to_string()))?;
-        println!("do_verb_url_r -- streaming.close()  3 " );
-    }
-
-
+         streaming.close().map_err(|e| RError::unknown(e.to_string()))?;
+     }
 
     let mut res = streaming.sender.send()
         .map_err(|e| RError::unknown(e.to_string()))?;
 
-    println!("do_verb_url_r -- streaming.sender.send   " );
 
-    println!("do_verb_url_r -- response_type {}", response_type);
 
     ResponseReader::new(response_type.into()).read(&mut res)
 }
