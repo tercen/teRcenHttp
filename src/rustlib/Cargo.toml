@@ -10,29 +10,15 @@ url="^1.7"
 #rustr = "0.1"
 rustr = { git = "https://github.com/tercen/rustr", tag = "0.1.11" }
 #rustr = { path = "../../rustr" }
-rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.11" }
+rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.15" }
 #rustson = { path = "../../rustson"}
-rtsonlib = { git = "https://github.com/tercen/rtsonlib", tag = "0.2.12" }
+rtsonlib = { git = "https://github.com/tercen/rtsonlib", tag = "0.2.13" }
 #rtsonlib = { path = "../../rtsonlib" }
 hyper-sync-rustls = "^0.3.0-rc.17"
-#hyper-sync-rustls = { path = "../../../hyper-sync-rustls" }
-#hyper-sync = { path = "../../../../hyper-sync" }
-#hyper = "0.12"
-#hyper-tls = "0.3"
-#tokio = "0.1"
-#futures = "0.1"
-#http = "0.1"
-#lazy_static = "1.3"
 
 [dependencies.hyper]
 version = "0.10"
-#version = "*"
 default-features = false
-
-#[dependencies.tokio-global]
-#version = "0.2"
-#features = ["multi"] #or multi for multithreaded runtim
-
 
 [lib]
 name = "rustlib"
