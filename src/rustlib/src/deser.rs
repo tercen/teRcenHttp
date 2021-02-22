@@ -68,8 +68,7 @@ impl<'r, T: Read> Reader for ReceiverReader<'r, T> {
     fn read_all(&mut self, buf: &mut Vec<u8>) -> ReaderResult<()> {
         if self.inner.get_ref().len() > 0 {
             buf.extend_from_slice(self.inner.get_ref());
-            self.inner.consume(   self.inner.get_ref().len());
-            // self.inner.consume(self.inner.bytes().len());
+            self.inner.consume(   self.inner.get_ref().len())
         }
 
         loop {
@@ -78,7 +77,6 @@ impl<'r, T: Read> Reader for ReceiverReader<'r, T> {
             if self.inner.get_ref().len() > 0 {
                 buf.extend_from_slice(self.inner.get_ref());
                 self.inner.consume(self.inner.get_ref().len());
-                // self.inner.consume(self.inner.bytes().len());
             }
         }
 
