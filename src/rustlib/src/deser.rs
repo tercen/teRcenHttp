@@ -25,6 +25,7 @@ impl<'r, T : Read> ReceiverReader<'r, T> {
     }
 
     fn ensure(&mut self, n: usize) -> ReaderResult<()> {
+        println!("ensure -- {}", n);
         if self.inner.remaining() >= n {
             return Ok(());
         }
