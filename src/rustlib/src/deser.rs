@@ -66,16 +66,20 @@ impl<'r, T : Read> ReceiverReader<'r, T> {
 
 impl<'r, T: Read> Reader for ReceiverReader<'r, T> {
     fn read_all(&mut self, buf: &mut Vec<u8>) -> ReaderResult<()> {
-        buf.extend_from_slice(self.inner.get_ref());
-        self.inner.consume(   self.inner.get_ref().len());
-        // self.inner.consume(self.inner.bytes().len());
+        if self.inner.get_ref().len() > 0 {
+            buf.extend_from_slice(self.inner.get_ref());
+            self.inner.consume(   self.inner.get_ref().len());
+            // self.inner.consume(self.inner.bytes().len());
+        }
 
         loop {
             self.next_item()?;
             if self.is_done { break; }
-            buf.extend_from_slice(self.inner.get_ref());
-            self.inner.consume(self.inner.get_ref().len());
-            // self.inner.consume(self.inner.bytes().len());
+            if self.inner.get_ref().len() > 0 {
+                buf.extend_from_slice(self.inner.get_ref());
+                self.inner.consume(self.inner.get_ref().len());
+                // self.inner.consume(self.inner.bytes().len());
+            }
         }
 
         Ok(())
