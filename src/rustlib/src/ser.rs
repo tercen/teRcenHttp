@@ -125,7 +125,6 @@ impl Writer for SenderWriter {
 
     fn put_slice(&mut self, src: &[u8]) -> TsonResult<()> {
         BufMut::put_slice(&mut self.buf, src);
-
         self.on_put()
     }
 }
