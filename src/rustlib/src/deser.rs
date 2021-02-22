@@ -25,7 +25,7 @@ impl<'r, T : Read> ReceiverReader<'r, T> {
     }
 
     fn ensure(&mut self, n: usize) -> ReaderResult<()> {
-        println!("ensure -- {}", n);
+        // println!("ensure -- {}", n);
         if self.inner.remaining() >= n {
             return Ok(());
         }
@@ -48,15 +48,12 @@ impl<'r, T : Read> ReceiverReader<'r, T> {
     }
 
     fn next_item(&mut self) -> ReaderResult<()> {
-        println!("next_item -- ");
-        let mut buffer = [0; 4096];
+         let mut buffer = [0; 4096];
         let read_result = self.receiver.read(&mut buffer[..]).map_err(TsonError::other );
         if read_result.is_err() {
-            println!("next_item -- read_result.is_err");
-        }
+         }
         let n = read_result?;
-        println!("next_item -- n {}", n );
-        if n == 0 {
+         if n == 0 {
             self.is_done = true;
             return Ok(());
         }
@@ -73,8 +70,7 @@ impl<'r, T : Read> ReceiverReader<'r, T> {
 
 impl<'r, T: Read> Reader for ReceiverReader<'r, T> {
     fn read_all(&mut self, buf: &mut Vec<u8>) -> ReaderResult<()> {
-        println!("read_all -- ");
-        if self.inner.get_ref().len() > 0 {
+         if self.inner.get_ref().len() > 0 {
             buf.extend_from_slice(self.inner.get_ref());
             self.inner.consume(   self.inner.get_ref().len())
         }
@@ -192,8 +188,7 @@ impl ResponseReader {
         let response_type = self.response_type_from(&response.headers);
         let mut reader = ReceiverReader::new(response);
         let obj = response_type.read(&mut reader)?;
-        println!("read R {:?}", obj);
-        let result = self.build_r_response(response, obj);
+         let result = self.build_r_response(response, obj);
         return result;
     }
 
