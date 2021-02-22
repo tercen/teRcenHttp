@@ -76,7 +76,7 @@ impl SenderWriter {
     pub fn flush(&mut self) -> TsonResult<()> {
         if !self.buf.is_empty() {
             let mut buf = Cursor::new(&mut self.buf);
-            std::io::copy(&mut buf, &mut self.sender).map_err(|e| TsonError::new(e.to_string()))?;
+            std::io::copy(&mut buf, &mut self.sender).map_err(|e| TsonError::new("flush failed".to_string()))?;
             self.buf.clear();
         }
 
