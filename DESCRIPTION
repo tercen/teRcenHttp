@@ -1,7 +1,7 @@
 Package: teRcenHttp
 Type: Package
 Title: Tercen http client
-Version: 1.0.18
+Version: 1.0.19
 Date: 2019-04-08
 Author: Alexandre Maurel
 Maintainer: Alexandre Maurel <alexandre.maurel@gmail.com>
