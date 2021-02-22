@@ -48,7 +48,11 @@ impl<'r, T : Read> ReceiverReader<'r, T> {
 
     fn next_item(&mut self) -> ReaderResult<()> {
         let mut buffer = [0; 4096];
-        let n = self.receiver.read(&mut buffer[..]).map_err(TsonError::other )?;
+        let read_result = self.receiver.read(&mut buffer[..]).map_err(TsonError::other );
+        if read_result.is_err() {
+            println!("next_item -- read_result.is_err");
+        }
+        let n = read_result?;
         if n == 0 {
             self.is_done = true;
             return Ok(());
