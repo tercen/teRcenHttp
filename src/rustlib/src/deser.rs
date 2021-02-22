@@ -55,6 +55,7 @@ impl<'r, T : Read> ReceiverReader<'r, T> {
             println!("next_item -- read_result.is_err");
         }
         let n = read_result?;
+        println!("next_item -- n {}", n );
         if n == 0 {
             self.is_done = true;
             return Ok(());
