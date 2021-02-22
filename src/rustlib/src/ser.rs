@@ -62,8 +62,8 @@ impl SenderWriter {
 
 
     pub fn close(&mut self)  -> TsonResult<()> {
-        self.flush()?;
-        self.sender.flush().map_err(|e| TsonError::new(e.to_string()))
+        self.flush()
+        // self.sender.flush().map_err(|e| TsonError::new(e.to_string()))
     }
 
     fn on_put(&mut self) -> TsonResult<()> {
