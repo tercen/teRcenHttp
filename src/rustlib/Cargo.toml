@@ -7,7 +7,6 @@ edition = "2018"
 [dependencies]
 bytes = "0.4"
 url="^1.7"
-#rustr = "0.1"
 rustr = { git = "https://github.com/tercen/rustr", tag = "0.1.11" }
 #rustr = { path = "../../rustr" }
 rustson = { git = "https://github.com/tercen/rustson", tag = "0.2.15" }
