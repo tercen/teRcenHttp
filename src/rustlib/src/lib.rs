@@ -8,7 +8,7 @@ extern crate hyper_sync_rustls;
 
 pub mod export;
 use url::Url;
-use std::io::{Cursor, Write};
+use std::io::{Cursor};
 use rustr::*;
 use rtsonlib::*;
 use rtsonlib::ser::{RSerializer};

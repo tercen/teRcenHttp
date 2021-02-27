@@ -4,10 +4,6 @@ use super::*;
 
 use bytes::BufMut;
 use rustson::ser::Writer;
-// use hyper::body::Sender;
-// use hyper::body::Chunk;
-//use std::{thread, time};
-//use futures::Future;
 
 pub trait BodyWriter {
     fn write(&self, writer: &mut dyn Writer) -> RTsonResult<()>;
@@ -54,20 +50,19 @@ pub struct SenderWriter {
     pub buf: Vec<u8>,
     pub sender: Request<Streaming>,
 }
+const DEFAULT_BUF_SIZE: usize = 8*1024;
 
 impl SenderWriter {
     pub fn new(sender: Request<Streaming>) -> SenderWriter {
-        SenderWriter { buf: Vec::with_capacity(1048576), sender }
+        SenderWriter { buf: Vec::with_capacity(DEFAULT_BUF_SIZE), sender }
     }
-
 
     pub fn close(&mut self)  -> TsonResult<()> {
         self.flush()
-        // self.sender.flush().map_err(|e| TsonError::new(e.to_string()))
     }
 
     fn on_put(&mut self) -> TsonResult<()> {
-        if self.buf.len() > 1048576 {
+        if self.buf.len() >= DEFAULT_BUF_SIZE {
             self.flush()?;
         }
         Ok(())
@@ -75,8 +70,8 @@ impl SenderWriter {
 
     pub fn flush(&mut self) -> TsonResult<()> {
         if !self.buf.is_empty() {
-            let mut buf = Cursor::new(&mut self.buf);
-            std::io::copy(&mut buf, &mut self.sender).map_err(|e| TsonError::new("flush failed".to_string()))?;
+            let mut buf = Cursor::new(&self.buf);
+            std::io::copy(&mut buf, &mut self.sender).map_err(|e| TsonError::new(e.to_string()))?;
             self.buf.clear();
         }
 
